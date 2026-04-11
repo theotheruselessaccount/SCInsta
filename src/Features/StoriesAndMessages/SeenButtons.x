@@ -4,6 +4,7 @@
 
 // Seen buttons (in DMs)
 // - Enables no seen for messages
+
 // - Enables unlimited views of DM visual messages
 %hook IGTallNavigationBarView
 - (void)setRightBarButtonItems:(NSArray <UIBarButtonItem *> *)items {
@@ -17,25 +18,25 @@
         }]
     ] mutableCopy];
 
-    // Messages seen
-    if ([SCIUtils getBoolPref:@"remove_lastseen"]) {
-        UIBarButtonItem *seenButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"checkmark.message"] style:UIBarButtonItemStylePlain target:self action:@selector(seenButtonHandler:)];
-        [new_items addObject:seenButton];
-    }
+    UIMenu *seenActionsMenu = [UIMenu menuWithTitle:@"" children:@[
+        [UIAction actionWithTitle:@"Mark messages as seen"
+                            image:[UIImage systemImageNamed:@"checkmark.message"]
+                       identifier:nil
+                          handler:^(__kindof UIAction * _Nonnull action) {
+            [self seenButtonHandler:nil];
+        }],
+        [UIAction actionWithTitle:@"Toggle visual messages viewed"
+                            image:[UIImage systemImageNamed:@"photo.badge.checkmark"]
+                       identifier:nil
+                          handler:^(__kindof UIAction * _Nonnull action) {
+            [self dmVisualMsgsViewedButtonHandler:nil];
+        }]
+    ]];
 
-    // DM visual messages viewed
-    if ([SCIUtils getBoolPref:@"unlimited_replay"]) {
-        UIBarButtonItem *dmVisualMsgsViewedButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"photo.badge.checkmark"] style:UIBarButtonItemStylePlain target:self action:@selector(dmVisualMsgsViewedButtonHandler:)];
-        [new_items addObject:dmVisualMsgsViewedButton];
+    UIBarButtonItem *dropdownButton = [[UIBarButtonItem alloc] initWithImage:[UIImage systemImageNamed:@"ellipsis.circle"]
+                                                                        menu:seenActionsMenu];
+    [new_items addObject:dropdownButton];
 
-        if (dmVisualMsgsViewedButtonEnabled) {
-            [dmVisualMsgsViewedButton setTintColor:SCIUtils.SCIColor_Primary];
-        } else {
-            [dmVisualMsgsViewedButton setTintColor:UIColor.labelColor];
-        }
-    }
-
-    %orig([new_items copy]);
 }
 
 // Messages seen button
